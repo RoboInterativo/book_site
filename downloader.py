@@ -16,6 +16,23 @@ def check_for_redirect(base_url,response):
     else:
        pass
 
+def download_image (base_url,book_id):
+    url=urllib.parse.urljoin(base_url,'/b{}'.format(book_id) )
+    response=requests.get(url)
+    print (response)
+    print ('GET IMAGE', response.url)
+    soup = BeautifulSoup(response.text, 'lxml')
+    book_image=soup.find(class_='bookimage')
+    img_part_url=book_image.find('img')['src']
+    if img_part_url.find('nopic.gif')<0:
+        url_img=urllib.parse.urljoin(base_url,'/{}'.format(img_part_url) )
+        response_img=requests.get(url)
+        if response_img.status_code==200:
+            filename=img_part_url.split('/')[-1]
+            f=open(os.path.join('books',filename),'wb')
+            f.write(response.content)
+            f.close()
+
 
 def get_book_title (base_url,book_id):
     url=urllib.parse.urljoin(base_url,'/b{}'.format(book_id) )
@@ -31,8 +48,8 @@ def get_book_title (base_url,book_id):
     return book_title
 
 
-def get_book_author (response):
-
+def get_book_author (base_url,book_id):
+    url=urllib.parse.urljoin(base_url,'/b{}'.format(book_id) )
     print (response)
     soup = BeautifulSoup(response.text, 'lxml')
     book_name_and_author = soup.find(id = 'content').find('h1')
@@ -59,6 +76,8 @@ def download_book(base_url,book_id):
         f=open(os.path.join('books',filename),'wb')
         f.write(response.content)
         f.close()
+        #Download IMAGE
+        download_image (base_url,book_id)
     #print (response.content)
 
 
